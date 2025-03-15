@@ -1,76 +1,97 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التسجيل</title>
+    <title>تسجيل الدخول</title>
+    <style>
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: Arial, sans-serif;
+        }
+        body { 
+            background: #f4f4f4; display: flex; 
+            justify-content: center; align-items: center; height: 100vh; 
+        }
+        .login-container { 
+            background: white; padding: 20px; 
+            border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            width: 350px; text-align: center;
+        }
+        h2 { color: #ff9800; margin-bottom: 20px; }
+        input {
+            width: 100%; padding: 10px; margin: 10px 0;
+            border: 1px solid #ddd; border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%; padding: 10px; margin-top: 10px;
+            background: #ff9800; color: white; border: none;
+            border-radius: 5px; font-size: 18px; cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #e68900; }
+        .error-message {
+            color: red; font-size: 14px; margin-top: 10px;
+        }
+    </style>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAB4wO937rCwc0OTWeJlGgoaxErWOdjaJM",
             authDomain: "my-new-a6e9f.firebaseapp.com",
             databaseURL: "https://my-new-a6e9f-default-rtdb.firebaseio.com",
             projectId: "my-new-a6e9f",
-            storageBucket: "my-new-a6e9f.firebasestorage.app",
+            storageBucket: "my-new-a6e9f.appspot.com",
             messagingSenderId: "1034729064842",
             appId: "1:1034729064842:web:5b3d42fe7b5c0f3a3ae073"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const auth = getAuth(app);
 
-        window.registerUser = function () {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const messageBox = document.getElementById("message-box");
+        window.loginUser = function () {
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const errorMessage = document.getElementById("error-message");
 
-            get(ref(db, "allowedUsers/" + btoa(email))).then((snapshot) => {
+            if (!email || !password) {
+                errorMessage.textContent = "❌ يرجى إدخال البريد الإلكتروني وكلمة المرور!";
+                return;
+            }
+
+            const userRef = ref(db, "allowedUsers/" + btoa(email));
+
+            get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
-                    if (password === userData.password) {
-                        createUserWithEmailAndPassword(auth, email, password)
-                            .then(() => {
-                                messageBox.innerText = "✅ تم إنشاء الحساب بنجاح! جاري التوجيه...";
-                                messageBox.style.color = "green";
-                                setTimeout(() => {
-                                    window.location.href = "https://dataenty.github.io/main/main.html";
-                                }, 2000);
-                            })
-                            .catch((error) => {
-                                messageBox.innerText = "❌ خطأ: " + error.message;
-                                messageBox.style.color = "red";
-                            });
+                    if (userData.password === password) {
+                        localStorage.setItem("userEmail", email);
+                        localStorage.setItem("userName", userData.name);
+                        window.location.href = "https://dataenty.github.io/main/main.html";
                     } else {
-                        messageBox.innerText = "❌ كلمة المرور غير صحيحة!";
-                        messageBox.style.color = "red";
+                        errorMessage.textContent = "❌ كلمة المرور غير صحيحة!";
                     }
                 } else {
-                    messageBox.innerText = "❌ هذا البريد غير مسموح له بالتسجيل!";
-                    messageBox.style.color = "red";
+                    errorMessage.textContent = "❌ البريد غير مسموح به!";
                 }
+            }).catch((error) => {
+                errorMessage.textContent = "❌ خطأ أثناء التحقق، حاول مرة أخرى!";
+                console.error("❌ خطأ أثناء التحقق من المستخدم:", error);
             });
         };
     </script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 50px; }
-        .register-container { background: white; padding: 20px; width: 350px; margin: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 5px; }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { background-color: #28a745; color: white; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        #message-box { font-weight: bold; margin-top: 10px; }
-    </style>
 </head>
 <body>
-    <div class="register-container">
-        <h2>التسجيل</h2>
-        <input type="email" id="email" placeholder="📧 البريد الإلكتروني" required>
-        <input type="password" id="password" placeholder="🔒 كلمة المرور" required>
-        <button onclick="registerUser()">تسجيل</button>
-        <p id="message-box"></p>
+    <div class="login-container">
+        <h2>تسجيل الدخول</h2>
+        <input type="email" id="email" placeholder="البريد الإلكتروني">
+        <input type="password" id="password" placeholder="كلمة المرور">
+        <button onclick="loginUser()">تسجيل الدخول</button>
+        <p id="error-message" class="error-message"></p>
     </div>
 </body>
 </html>
