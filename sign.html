@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
+    <title>التسجيل</title>
     <script type="module">
-        // استيراد Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-        // إعدادات Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAB4wO937rCwc0OTWeJlGgoaxErWOdjaJM",
             authDomain: "my-new-a6e9f.firebaseapp.com",
@@ -20,119 +19,57 @@
             appId: "1:1034729064842:web:5b3d42fe7b5c0f3a3ae073"
         };
 
-        // تهيئة Firebase
         const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
         const auth = getAuth(app);
 
-        // دالة تسجيل الدخول
-        window.loginUser = function () {
+        window.registerUser = function () {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const messageBox = document.getElementById("message-box");
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    messageBox.innerText = "✅ تم تسجيل الدخول بنجاح!";
-                    messageBox.style.color = "white";
-                    messageBox.style.backgroundColor = "#28a745";
-                    messageBox.style.display = "block";
-
-                    setTimeout(() => {
-                        window.location.href = "https://dataenty.github.io/main/main.html";
-                    }, 2000); // التوجيه بعد ثانيتين
-                })
-                .catch((error) => {
-                    messageBox.innerText = "❌ خطأ: " + error.message;
-                    messageBox.style.color = "white";
-                    messageBox.style.backgroundColor = "#dc3545";
-                    messageBox.style.display = "block";
-                });
+            get(ref(db, "allowedUsers/" + btoa(email))).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (password === userData.password) {
+                        createUserWithEmailAndPassword(auth, email, password)
+                            .then(() => {
+                                messageBox.innerText = "✅ تم إنشاء الحساب بنجاح! جاري التوجيه...";
+                                messageBox.style.color = "green";
+                                setTimeout(() => {
+                                    window.location.href = "https://dataenty.github.io/main/main.html";
+                                }, 2000);
+                            })
+                            .catch((error) => {
+                                messageBox.innerText = "❌ خطأ: " + error.message;
+                                messageBox.style.color = "red";
+                            });
+                    } else {
+                        messageBox.innerText = "❌ كلمة المرور غير صحيحة!";
+                        messageBox.style.color = "red";
+                    }
+                } else {
+                    messageBox.innerText = "❌ هذا البريد غير مسموح له بالتسجيل!";
+                    messageBox.style.color = "red";
+                }
+            });
         };
     </script>
     <style>
-        /* تصميم الصفحة العامة */
-        body {
-            font-family: 'Tajawal', sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        /* تصميم صندوق تسجيل الدخول */
-        .login-container {
-            background: white;
-            padding: 25px;
-            width: 350px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        /* عنوان الصفحة */
-        h2 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        /* تصميم الحقول */
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            text-align: right;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-
-        /* زر تسجيل الدخول */
-        button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            background-color: #007bff;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        /* زر عند الضغط */
-        button:active {
-            transform: scale(0.98);
-        }
-
-        /* رسالة النجاح والخطأ */
-        #message-box {
-            margin-top: 15px;
-            padding: 10px;
-            font-size: 16px;
-            display: none;
-            border-radius: 5px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 50px; }
+        .register-container { background: white; padding: 20px; width: 350px; margin: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 5px; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { background-color: #28a745; color: white; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #message-box { font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>تسجيل الدخول</h2>
+    <div class="register-container">
+        <h2>التسجيل</h2>
         <input type="email" id="email" placeholder="📧 البريد الإلكتروني" required>
         <input type="password" id="password" placeholder="🔒 كلمة المرور" required>
-        <button onclick="loginUser()">🔑 تسجيل الدخول</button>
+        <button onclick="registerUser()">تسجيل</button>
         <p id="message-box"></p>
     </div>
 </body>
