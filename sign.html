@@ -1,97 +1,116 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
-    <style>
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            font-family: Arial, sans-serif;
-        }
-        body { 
-            background: #f4f4f4; display: flex; 
-            justify-content: center; align-items: center; height: 100vh; 
-        }
-        .login-container { 
-            background: white; padding: 20px; 
-            border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-            width: 350px; text-align: center;
-        }
-        h2 { color: #ff9800; margin-bottom: 20px; }
-        input {
-            width: 100%; padding: 10px; margin: 10px 0;
-            border: 1px solid #ddd; border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            width: 100%; padding: 10px; margin-top: 10px;
-            background: #ff9800; color: white; border: none;
-            border-radius: 5px; font-size: 18px; cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover { background: #e68900; }
-        .error-message {
-            color: red; font-size: 14px; margin-top: 10px;
-        }
-    </style>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAB4wO937rCwc0OTWeJlGgoaxErWOdjaJM",
-            authDomain: "my-new-a6e9f.firebaseapp.com",
-            databaseURL: "https://my-new-a6e9f-default-rtdb.firebaseio.com",
-            projectId: "my-new-a6e9f",
-            storageBucket: "my-new-a6e9f.appspot.com",
-            messagingSenderId: "1034729064842",
-            appId: "1:1034729064842:web:5b3d42fe7b5c0f3a3ae073"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        window.loginUser = function () {
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value.trim();
-            const errorMessage = document.getElementById("error-message");
-
-            if (!email || !password) {
-                errorMessage.textContent = "❌ يرجى إدخال البريد الإلكتروني وكلمة المرور!";
-                return;
-            }
-
-            const userRef = ref(db, "allowedUsers/" + btoa(email));
-
-            get(userRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        localStorage.setItem("userEmail", email);
-                        localStorage.setItem("userName", userData.name);
-                        window.location.href = "https://dataenty.github.io/main/main.html";
-                    } else {
-                        errorMessage.textContent = "❌ كلمة المرور غير صحيحة!";
-                    }
-                } else {
-                    errorMessage.textContent = "❌ البريد غير مسموح به!";
-                }
-            }).catch((error) => {
-                errorMessage.textContent = "❌ خطأ أثناء التحقق، حاول مرة أخرى!";
-                console.error("❌ خطأ أثناء التحقق من المستخدم:", error);
-            });
-        };
-    </script>
+  <meta charset="UTF-8" />
+  <title>تسجيل الدخول</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background-color: white;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 350px;
+    }
+    .login-box h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      text-align: center;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 10px;
+      background-color: #3498db;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .login-box button:hover {
+      background-color: #2980b9;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>تسجيل الدخول</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="password" placeholder="كلمة المرور">
-        <button onclick="loginUser()">تسجيل الدخول</button>
-        <p id="error-message" class="error-message"></p>
-    </div>
+
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" />
+    <input type="password" id="password" placeholder="كلمة السر" />
+    <button onclick="login()">دخول</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAB4wO937rCwc0OTWeJlGgoaxErWOdjaJM",
+      authDomain: "my-new-a6e9f.firebaseapp.com",
+      databaseURL: "https://my-new-a6e9f-default-rtdb.firebaseio.com",
+      projectId: "my-new-a6e9f",
+      storageBucket: "my-new-a6e9f.appspot.com",
+      messagingSenderId: "1034729064842",
+      appId: "1:1034729064842:web:5b3d42fe7b5c0f3a3ae073"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    window.login = function() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.textContent = "";
+
+      if (!user || !pass) {
+        errorMsg.textContent = "يرجى إدخال جميع الحقول";
+        return;
+      }
+
+      const dbRef = ref(db);
+      get(child(dbRef, `users/${user}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.password === pass) {
+            // ✅ نجاح الدخول: الانتقال للرئيسية
+            window.location.href = "https://dataenty.github.io/main/main.html";
+          } else {
+            errorMsg.textContent = "كلمة السر غير صحيحة";
+          }
+        } else {
+          errorMsg.textContent = "المستخدم غير موجود";
+        }
+      }).catch((error) => {
+        console.error(error);
+        errorMsg.textContent = "حدث خطأ في الاتصال";
+      });
+    };
+  </script>
 </body>
 </html>
